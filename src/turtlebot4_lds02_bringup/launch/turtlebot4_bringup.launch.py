@@ -3,10 +3,15 @@
 ================================================================================
 역할 (3-layer hijack pattern Layer 2)
 ================================================================================
-Vendor `turtlebot4_bringup/launch/standard.launch.py` 와 동일한 흐름을 재현하되,
-`rplidar.launch.py` 만 의도적으로 누락하고 그 자리에 ROBOTIS `ld08_driver` 노드를
-끼워넣는다. 나머지 robot/joy/description/diagnostics 는 vendor launch 파일을
-IncludeLaunchDescription 으로 그대로 호출 — vendor 자산 미수정.
+Vendor `turtlebot4_bringup/launch/standard.launch.py` 의 **LiDAR 영역만** 대체하고
+그 외 영역은 vendor 자산을 그대로 IncludeLaunchDescription. 즉:
+
+- `rplidar.launch.py`  → 의도적 누락. 자리에 ROBOTIS `ld08_driver` 노드 삽입.
+- `robot.launch.py` / `joy_teleop.launch.py` / `description.launch.py` /
+  `diagnostics.launch.py`  → vendor 호출 그대로 (vendor 자산 미수정).
+- `oakd.launch.py`  → **본 shim 에서 의도적 제외**. 본 repo 의 scope 가
+  "LiDAR 영역만 swap" 이며 OAK-D 등 다른 sensor stack 은 vendor `turtlebot4-bringup`
+  service 가 별도 경로로 처리하므로 shim 의 미러 대상 아님.
 
 ================================================================================
 실행 경로
@@ -124,7 +129,7 @@ def generate_launch_description():
             PythonLaunchDescriptionSource([joy_teleop_launch_file]),
             launch_arguments=[('namespace', namespace)]),
 
-        # ★ vendor rplidar.launch.py 자리 — 의도적 누락. LDS-02 노드로 대체.
+        # vendor rplidar.launch.py 자리 — 의도적 누락. LDS-02 노드로 대체.
         # 발행 토픽: /<ns>/scan (sensor_msgs/LaserScan, frame_id=rplidar_link)
         ld08_node,
 
