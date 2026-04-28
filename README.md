@@ -26,6 +26,7 @@ src/turtlebot4_lds02_bringup/
 
 ### 사전 조건
 
+- **인터넷 연결**: TurtleBot4 RPi4 가 외부 인터넷에 접근 가능해야 한다. `sudo apt install ros-humble-ld08-driver` (Ubuntu 저장소) 와 `git clone https://github.com/...` (GitHub) 두 단계가 외부 접근에 의존. WiFi / 이더넷 어느 쪽이든 OK — `ping 8.8.8.8` 또는 `sudo apt update` 로 확인.
 - TurtleBot4 RPi4 의 **standard 이미지** 위에서 작업한다.
   - `systemctl is-active turtlebot4.service` → `active` (vendor service 가 정상 운영 상태)
   - `/etc/turtlebot4/setup.bash` 존재 (vendor 환경 source)
@@ -33,7 +34,7 @@ src/turtlebot4_lds02_bringup/
 - **물리 작업**: RPLIDAR-A1 분리 후 동일 sensor mount plate 에 LDS-02 (LD08) 부착. USB 는 vendor 와 동일 포트 (`/dev/ttyUSB0`) 로 연결.
 - **단일 LiDAR 가정**: 본 shim 은 RPLIDAR-A1 + LDS-02 동시 연결 시나리오를 지원하지 않는다 (CP2102 동종 USB descriptor). RPLIDAR 는 반드시 물리 분리.
 
-### 단계 1 — PC dry-run (권장, Hard Rule #5)
+### 단계 1 — PC dry-run (선택 사항)
 
 실기 적용 전 PC 에서 build / executable / launch import 단계 통과 확인.
 
@@ -143,26 +144,6 @@ sudo udevadm control --reload-rules
 ```
 
 vendor 본체 (`/lib/systemd/system/turtlebot4.service`) 는 본 shim 이 수정하지 않으므로 drop-in 만 제거하면 즉시 vendor 동작으로 복귀. 물리적으로는 LDS-02 분리 + RPLIDAR-A1 재장착.
-
----
-
-## 설계 제약 (Hard Rules)
-
-본 통합은 **vendor 자산 보존** 과 **현장 배포 안전성** 을 모든 결정의 기준으로 한다. 변경 / fork 시 반드시 지켜야 하는 invariant. 단일 source of truth 는 [`.claude/rules/ai-constitution.md`](.claude/rules/ai-constitution.md) Section IV (또는 [`CLAUDE.md`](CLAUDE.md) 요약).
-
-1. **vendor 소스 미수정** — `turtlebot4_bringup` / `turtlebot4_description` / `turtlebot4_diagnostics` / `ld08_driver` 패키지를 수정 / fork 하지 않는다. apt 업데이트 경로와 보안 패치 추적 보존이 목적.
-
-2. **`frame_id = rplidar_link` 고정** — vendor URDF (`turtlebot4_description/urdf/standard/turtlebot4.urdf.xacro`) 가 LiDAR mount 를 `rplidar_link` 로 정의한다. 따라서 LDS-02 publish frame_id 도 `rplidar_link` 로만 쓴다. **모델 이름이 아니라 vendor URDF 의 mount slot 이름**. 다른 값은 Nav2 / SLAM / costmap 다운스트림 광범위 영향.
-
-3. **systemd 본체 미수정** — `/lib/systemd/system/turtlebot4.service` 본체를 직접 수정하지 않는다. 변경은 `/etc/systemd/system/turtlebot4.service.d/override.conf` drop-in 으로만. apt 업데이트가 본체 변경분을 덮어쓰는 것을 방지.
-
-4. **frame aliasing 우회 금지** — `static_transform_publisher` 로 `rplidar_link ↔ base_scan` 같은 frame aliasing 노드를 추가하지 않는다. `ld08_driver` 가 `frame_id` 파라미터를 직접 받으므로 불필요한 노드 / extra TF / timestamp 지연만 유발.
-
-5. **PC dry-run 선행** — 실기 RPi4 에 systemd drop-in 적용 전, PC 에서 `colcon build --symlink-install` + `ros2 pkg executables ld08_driver` + launch import 단계를 통과시킨다.
-
-6. **udev 룰 변경 시 USB descriptor 재확인** — 보드 리비전 차이로 `idVendor` / `idProduct` / `serial` 값이 다를 수 있다. 룰 수정 전 `lsusb` 또는 `udevadm info -a -n /dev/ttyUSB0` 로 실측.
-
-7. **단일 LiDAR 운용 가정** — RPLIDAR-A1 + LDS-02 동시 연결 시나리오는 미지원 (CP2102 동종 칩이라 `idVendor`/`idProduct`/`serial` 로 disambiguate 불가). 듀얼 LiDAR 발생 시 udev 룰을 USB 포트 경로 (`KERNELS=="1-1.x"`) 로 분기.
 
 ---
 
