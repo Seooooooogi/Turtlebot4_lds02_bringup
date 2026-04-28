@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>turtlebot4_lds02_bringup</name>
+  <version>0.1.0</version>
+  <description>TurtleBot4 bringup shim that swaps vendor RPLIDAR-A1 for ROBOTIS LDS-02 (LD08) using a 3-layer (systemd drop-in / launch shim / udev) hijack pattern. Vendor packages are not modified.</description>
+  <maintainer email="todo@example.com">rokey</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <!-- Runtime: launch shim depends on vendor packages and ld08_driver -->
+  <exec_depend>nav2_common</exec_depend>
+  <exec_depend>turtlebot4_bringup</exec_depend>
+  <exec_depend>turtlebot4_description</exec_depend>
+  <exec_depend>turtlebot4_diagnostics</exec_depend>
+  <exec_depend>ld08_driver</exec_depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

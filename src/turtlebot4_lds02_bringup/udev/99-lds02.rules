@@ -1,0 +1,28 @@
+# udev rule for LDS-02 (LD08) — grants USB-serial read/write to all users so
+# ld08_driver (running as 'ubuntu' from systemd) can open the device.
+#
+# Verified USB descriptor on a sample LDS-02 board (Silicon Labs CP2102 USB-UART
+# bridge): idVendor=10c4, idProduct=ea60. Generic serial '0001'.
+#
+# CAVEAT: serial number is not unique. If RPLIDAR-A1 (often also CP2102, same
+# 10c4:ea60) remains plugged in, both devices will match this rule. For LDS-02
+# replacing RPLIDAR (single-LiDAR deployment), simply ensure RPLIDAR is
+# physically disconnected. For dual-LiDAR setups, disambiguate by USB port
+# path (KERNELS=="1-1.2" etc.) — see docs/LDS-02_integration_instructions.md §4.
+#
+# Install path on TurtleBot4:
+#   /etc/udev/rules.d/99-lds02.rules
+#
+# Install commands:
+#   sudo install -m 0644 \
+#     ~/Turtlebot4_lds02_bringup_ws/src/turtlebot4_lds02_bringup/udev/99-lds02.rules \
+#     /etc/udev/rules.d/99-lds02.rules
+#   sudo udevadm control --reload-rules
+#   sudo udevadm trigger
+#   ls -l /dev/ttyUSB0   # expect crw-rw-rw-
+#
+# The SYMLINK+="ldlidar" alias is for human convenience only — ld08_driver
+# uses libudev to enumerate USB descriptors directly and does not consume the
+# symlink path.
+
+SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", MODE="0666", SYMLINK+="ldlidar"
