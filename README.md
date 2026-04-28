@@ -106,6 +106,25 @@ ros2 run tf2_ros tf2_echo base_link rplidar_link \
 - TurtleBot4 vendor 환경은 **FastDDS Discovery Server 모드**로 동작한다. 일반 client 의 `ros2 topic list` 는 `/parameter_events`, `/rosout` 만 보일 수 있다. 토픽 데이터 자체는 위 `echo --type --once` / `hz` 명령으로 정상 수신된다.
 - TF 는 `<ROBOT_NAMESPACE>` 안 (`/<ns>/tf`, `/<ns>/tf_static`) 으로 publish 되므로 위와 같이 `__ns` + `/tf` remap 이 필요하다.
 
+### 시각 검증 (RViz, PC)
+
+PC 에서 vendor mesh 패키지 설치 후 본 패키지의 RViz config 로 실행:
+
+```bash
+sudo apt install ros-humble-turtlebot4-description    # 첫 PC setup 시 1회
+source install/setup.bash
+
+ros2 run rviz2 rviz2 \
+  -d $(ros2 pkg prefix turtlebot4_lds02_bringup)/share/turtlebot4_lds02_bringup/rviz/lds02_check.rviz \
+  --ros-args -r /tf:=/<ROBOT_NAMESPACE>/tf -r /tf_static:=/<ROBOT_NAMESPACE>/tf_static
+```
+
+정상 동작 시 화면 — TurtleBot4 mesh + `rplidar_link` 좌표축 + `/<ROBOT_NAMESPACE>/scan` 점 분포 (intensity 컬러맵):
+
+![RViz 시각 검증](docs/rviz.png)
+
+화면에 산발 점 (cool tone) 이 보이는 것은 LDS-02 raw 측정 특성 (저반사율 표면 / 광택 / single-shot raw) 으로, 통합 결함이 아니다. SLAM 의 scan matching 이 자연 흡수한다.
+
 ---
 
 ## 롤백
