@@ -27,6 +27,11 @@ outputs/
 
 # Claude Code agent assets (per-machine, untracked)
 .agent/
+.claude/
 CLAUDE.md
 BRIEF.md
 plan/
+tasks/
+docs/harness-tests.md
+docs/LDS-02_integration_design.md
+docs/lds02_integration_report.md
