@@ -4,7 +4,7 @@ project(turtlebot4_lds02_bringup)
 find_package(ament_cmake REQUIRED)
 
 # Pure launch / config / systemd / udev install — no C++ targets.
-install(DIRECTORY launch systemd udev
+install(DIRECTORY launch rviz systemd udev
   DESTINATION share/${PROJECT_NAME}
 )
 
